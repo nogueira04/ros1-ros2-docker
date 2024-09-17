@@ -1,0 +1,48 @@
+services:
+  ros1:
+    image: ros:noetic
+    build:
+      context: ./noetic/
+    container_name: ros1_container
+    environment:
+      - ROS_MASTER_URI=http://ros1_container:11311
+      # - ROS_HOSTNAME=ros1_container
+    networks:
+      - ros-network
+    command: bash -c "source /opt/ros/noetic/setup.bash && roscore"
+    ports:
+      - "11311:11311"
+      
+  ros2:
+    image: ros:foxy
+    build:
+      context: ./foxy/
+    container_name: ros2_container
+    depends_on:
+      - ros1
+    environment:
+      - ROS_MASTER_URI=http://ros1_container:11311
+      # - ROS_HOSTNAME=ros2_container
+    networks:
+      - ros-network
+    # command: bash -c "source /opt/ros/foxy/setup.bash && bash"
+    command: tail -f /dev/null
+
+  ros1_ros2_bridge:
+    image: ros:bridge
+    build:
+      context: ./bridge/
+    container_name: bridge_container
+    depends_on:
+      - ros1
+      - ros2
+    environment:
+      - ROS_MASTER_URI=http://ros1_container:11311
+      # - ROS_HOSTNAME=ros1_ros2_bridge_container
+    networks:
+      - ros-network
+    command: bash -c "source /opt/ros/noetic/setup.bash && source /opt/ros/foxy/setup.bash && source install/setup.bash && ros2 run ros1_bridge dynamic_bridge"
+
+networks:
+  ros-network:
+    driver: bridge
