@@ -7,6 +7,10 @@ services:
     environment:
       - ROS_MASTER_URI=http://ros1_container:11311
       # - ROS_HOSTNAME=ros1_container
+      - DISPLAY=$DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    privileged: true
     networks:
       - ros-network
     command: bash -c "source /opt/ros/noetic/setup.bash && roscore"
@@ -23,6 +27,10 @@ services:
     environment:
       - ROS_MASTER_URI=http://ros1_container:11311
       # - ROS_HOSTNAME=ros2_container
+      - DISPLAY=$DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    privileged: true
     networks:
       - ros-network
     # command: bash -c "source /opt/ros/foxy/setup.bash && bash"
