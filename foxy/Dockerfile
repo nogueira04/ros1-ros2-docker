@@ -18,11 +18,18 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /home/
 RUN mkdir -p /home/ros2_ws/src/ && \
     cd /home/ros2_ws/src/ && \
+    rm -rf /home/ros2_ws/src/open_vins_ardupilot && \
     git clone https://github.com/jpeixe07/open_vins_ardupilot/ && \
     cd open_vins_ardupilot && \
     git checkout feat/ros2 && \
     cd /home/ros2_ws/ && \
     colcon build --event-handlers console_cohesion+ --packages-select ov_core ov_init ov_msckf
+
+# RCPilot setup
+RUN git clone https://github.com/robocin/rcpilot.git /home/rcpilot && \
+    cd /home/rcpilot && \
+    pip install -r requirements.txt && \
+    pip install -e .
 
 #source the workspace
 RUN echo "source /opt/ros/foxy/setup.bash" >> ~/.bashrc && \
