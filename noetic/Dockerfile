@@ -20,6 +20,13 @@ RUN apt-get update && apt-get install -y \
     vim \
     git \
     wget \
+    meson \
+    ninja-build \
+    pkg-config \
+    gcc \
+    g++ \
+    systemd \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GeographicLib datasets for MAVROS
@@ -28,10 +35,8 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/
     ./install_geographiclib_datasets.sh && \
     rm install_geographiclib_datasets.sh
 
-# Create a workspace for MAVROS, OpenVINS, and ELP driver in /home/
+# Create a workspace for OpenVINS, and ELP driver in /home/
 WORKDIR /home/
-
-# MAVROS setup (already installed via ros-noetic-mavros and ros-noetic-mavros-extras)
 
 # Custom OpenVINS setup with ROS 1 branch
 RUN mkdir -p /home/openvins_ws/src && \
@@ -45,11 +50,20 @@ RUN mkdir -p /home/openvins_ws/src && \
 # ELP Synchronized Stereo Camera
 RUN mkdir -p /home/elp_camera_ws/src && \
     cd /home/elp_camera_ws/src && \
-    git clone https://github.com/mdkennedy3/elp-synchronized-stereo-camera-ros-pkg && \
+    git clone https://github.com/nogueira04/elp-synchronized-stereo-camera-ros-pkg && \
     cd /home/elp_camera_ws && \
     /bin/bash -c "source /opt/ros/noetic/setup.bash; catkin_make"
 
-# needs fixing    
+# Install Mavlink Router
+RUN git clone https://github.com/mavlink-router/mavlink-router.git /home/mavlink-router && \
+    cd /home/mavlink-router && \
+    git submodule update --init --recursive && \
+    pip3 install meson && \
+    meson setup build . && \
+    ninja -C build && \
+    sudo ninja -C build install
+
+# Source ROS and workspaces
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc && \
     echo "source /home/openvins_ws/devel/setup.bash" >> ~/.bashrc && \
     echo "source /home/elp_camera_ws/devel/setup.bash" >> ~/.bashrc
